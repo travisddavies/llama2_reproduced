@@ -1,2 +1,4 @@
-# llama2_reproduced
-Reproducing the llama2 code (for educational purposes)
+## Llama 2 Reproduced
+This is a just reproduction code to understand how Llama 2 works. May give further explanations for
+my findings later
+
