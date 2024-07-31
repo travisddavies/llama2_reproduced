@@ -224,6 +224,12 @@ class Attention(nn.Module):
         self.n_rep = self.n_local_heads // self.n_local_kv_heads
         self.head_dim = args.dim // args.n_heads
 
+        # This will create a tensor that is parallelised across the columns of
+        # the tensor. The dimensions will be (args.dim, args.n_heads * self.head_dim)
+        # and determined by how many GPUs are available for partitioning the
+        # tensor, each GPU will process only x number of columns
+
+        # These are the weights for the query embeddings
         self.wq = ColumnParallelLinear(
             args.dim,
             args.n_heads * self.head_dim,
@@ -231,6 +237,7 @@ class Attention(nn.Module):
             gather_output=False,
             init_head=lambda x: x,
         )
+        # These are the weights for the key embeddings
         self.wk = ColumnParallelLinear(
             args.dim,
             self.n_kv_heads * self.head_dim,
@@ -238,6 +245,7 @@ class Attention(nn.Module):
             gather_output=False,
             init_method=lambda x: x,
         )
+        # These are the weights for the value embeddings
         self.wv = ColumnParallelLinear(
             args.dim,
             self.n_kv_heads * self.head_dim,
@@ -245,6 +253,8 @@ class Attention(nn.Module):
             gather_output=False,
             init_method=lambda x: x,
         )
+        # Maybe for the final linear layer once the heads are concatenated
+        # together again? [MAKE SURE TO CHECK ON THIS]
         self.wo = RowParallelLinear(
             args.n_head * self.head_dim,
             args.dim,
