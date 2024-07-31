@@ -173,6 +173,8 @@ def apply_rotary_emb(
     xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))
     xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2))
     # Reshape the frequencies array for matching dimensions
+    # Essentially we should have a shape of (1, seq_len, 1, 1, 2)
+    # Now this can be broadcasted along the query and key embeddings
     freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
     # Perform the pointwise multiplications and flatten the embeddings back
     # to their normal shape
@@ -187,8 +189,15 @@ def repeat_kv(x: torch.Tensor, n_rep: int) -> torch.Tensor:
     if n_rep == 1:
         return x
     return (
+        # This converts x to the following dimensions:
+        # (bs, slen, 1, n_kv_heads, head_dim)
         x[:, :, :, None, :]
+        # New dimensions:
+        # (bs, slen, n_kv_heads, n_rep, head_dim)
         .expand(bs, slen, n_kv_heads, n_rep, head_dim)
+        # New dimensions:
+        # (bs, slen, n_kv_heads * n_rep, head_dim)
+        # We therefore concatenated together the 3rd and 4th column
         .reshape(bs, slen, n_kv_heads * n_rep, head_dim)
     )
 
@@ -300,18 +309,26 @@ class Attention(nn.Module):
             torch.Tensor: Output tensor after attention.
 
         """
+        # bsz is batch_size, seqlen is the length of the input tokens
         bsz, seqlen, _ = x.shape
+        # This is passing each model through the parallelised linear layers
+        # for the key, query and value embeddings
         xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
+        # We now break the inputs into sub-embeddings for multi-headed
+        # attention.
         xq = xq.view(bsz, seqlen, self.n_local_heads, self.head_dim)
         xk = xk.view(bsz, seqlen, self.n_local_kv_heads, self.head_dim)
         xv = xv.view(bsz, seqlen, self.n_local_kv_heads, self.head_dim)
 
+        # We apply positonal encoding to the query and key embeddings
         xq, xk = apply_rotary_emb(xq, xk, freqs_cis=freqs_cis)
 
         self.cache_k = self.cache_k.to(xq)
         self.cache_v = self.cache_v.to(xq)
 
+        # This is now storing the key and value embeddings, with padding at
+        # the end of the sequence
         self.cache_k[:bsz, start_pos:start_pos+seqlen] = xk
         self.cache_v[:bsz, start_pos:start_pos+seqlen] = xv
 
@@ -319,8 +336,10 @@ class Attention(nn.Module):
         values = self.cache_v[:bsz, :start_pos+seqlen]
 
         # repeat k/v heads if n_kv_heads < n_heads
-        keys = repeat_kv(keys, self.n_rep)  # (bs, cache_len + seqlen, n_local_heads, head_dim)
-        values = repeat_kv(values, self.n_rep)  # (bs, cache_len + seqlen, n_local_heads, head_dim)
+        # (bs, cache_len + seqlen, n_local_heads, head_dim)
+        keys = repeat_kv(keys, self.n_rep)
+        # (bs, cache_len + seqlen, n_local_heads, head_dim)
+        values = repeat_kv(values, self.n_rep)
         # (bs, n_local_heads, seqlen, head_dim)
         xq = xq.transpose(1, 2)
         # (bs, n_local_heads, cache_len + seqlen, head_dim)
