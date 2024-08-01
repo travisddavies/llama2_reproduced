@@ -184,13 +184,14 @@ def apply_rotary_emb(
 
 
 def repeat_kv(x: torch.Tensor, n_rep: int) -> torch.Tensor:
-    """torch.repeat_interleave(x, dim=2, repeats=n_rep)"""
+    """torch.repeat_interleave(x, dim=2, repeats=n_rep)
+    """
     bs, slen, n_kv_heads, head_dim = x.shape
     if n_rep == 1:
         return x
     return (
         # This converts x to the following dimensions:
-        # (bs, slen, 1, n_kv_heads, head_dim)
+        # (bs, slen, n_kv_heads, 1, head_dim)
         x[:, :, :, None, :]
         # New dimensions:
         # (bs, slen, n_kv_heads, n_rep, head_dim)
@@ -337,15 +338,22 @@ class Attention(nn.Module):
 
         # repeat k/v heads if n_kv_heads < n_heads
         # (bs, cache_len + seqlen, n_local_heads, head_dim)
+        # Create our grouped queries
         keys = repeat_kv(keys, self.n_rep)
         # (bs, cache_len + seqlen, n_local_heads, head_dim)
         values = repeat_kv(values, self.n_rep)
         # (bs, n_local_heads, seqlen, head_dim)
+
+        # We do this so that now a query sub-embedding can query every
+        # sub-embedding in in the keys embeddings (remember that the dot product
+        # will go across the next dimension too, idea the words in the sequence)
         xq = xq.transpose(1, 2)
         # (bs, n_local_heads, cache_len + seqlen, head_dim)
         keys = keys.transpose(1, 2)
         # (bs, n_local_heads, cache_len + seqlen, head_dim)
         values = values.transpose(1, 2)
+        # Here we transpose keys in this way since the last two dims need to
+        # be transposed - simple linear algebra rule for matrix multiplicaitons
         scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
         # (bs, n_local_heads, seqlen, cache_len + seqlen)
         if mask is not None:
@@ -355,3 +363,58 @@ class Attention(nn.Module):
         output = torch.matmul(scores, values)
         output = output.transpose(1, 2).contiguous().view(bsz, seqlen, -1)
         return self.wo(output)
+
+
+class FeedForward(nn.Module):
+    def __init__(
+        self,
+        dim: int,
+        hidden_dim: int,
+        multiple_of: int,
+        ffn_dim_multiplier: Optional[float]
+    ):
+        """
+        Initialize the FeedForward module.
+
+        Args:
+            dim (int): Input dimension.
+            hidden_dim (int): Hidden dimension of the feedforward layer.
+            multiple_of (int): Value to ensure hidden dimension is a multiple of this value.
+            ffn_dim_multiplier (float, optional): Custom multiplier for hidden dimension. Defaults to None.
+
+        Attributes:
+            w1 (ColumnParallelLinear): Linear transformation for the first layer.
+            w2 (RowParallelLinear): Linear transformation for the second layer.
+            w3 (ColumnParallelLinear): Linear transformation for the third layer.
+
+        """
+        super().__init__()
+        hidden_dim = int(2 * hidden_dim / 3)
+        # custom dim factor multiplier
+        if ffn_dim_multiplier is not None:
+            hidden_dim = int(ffn_dim_multiplier * hidden_dim)
+        hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
+
+        self.w1 = ColumnParallelLinear(
+            dim, hidden_dim,
+            bias=False,
+            gather_output=False,
+            init_method=lambda x: x
+        )
+        self.w2 = RowParallelLinear(
+            dim,
+            hidden_dim,
+            bias=False,
+            gather_output=True,
+            init_method=lambda x: x
+        )
+        self.w3 = ColumnParallelLinear(
+            dim,
+            hidden_dim,
+            bias=False,
+            gather_output=False,
+            init_method=lambda x: x
+        )
+
+    def forward(self, x):
+        return self.w2(F.silu(self.w1(x) * self.w3(x)))
