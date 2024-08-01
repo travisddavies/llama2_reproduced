@@ -379,8 +379,9 @@ class FeedForward(nn.Module):
         Args:
             dim (int): Input dimension.
             hidden_dim (int): Hidden dimension of the feedforward layer.
-            multiple_of (int): Value to ensure hidden dimension is a multiple of this value.
-            ffn_dim_multiplier (float, optional): Custom multiplier for hidden dimension. Defaults to None.
+            multiple_of (int): Value to ensure hidden dimension is a multiple
+            of this value. ffn_dim_multiplier (float, optional): Custom
+            multiplier for hidden dimension Defaults to None.
 
         Attributes:
             w1 (ColumnParallelLinear): Linear transformation for the first layer.
@@ -402,8 +403,8 @@ class FeedForward(nn.Module):
             init_method=lambda x: x
         )
         self.w2 = RowParallelLinear(
-            dim,
             hidden_dim,
+            dim,
             bias=False,
             gather_output=True,
             init_method=lambda x: x
@@ -417,4 +418,8 @@ class FeedForward(nn.Module):
         )
 
     def forward(self, x):
+        # This is the SwiGLU activation function
+        # Two linear transformations with pointwise multiplication
+        # Then linear transformation from w2 multiplied by the activation
+        # function of Swish (F.silu in this case)
         return self.w2(F.silu(self.w1(x) * self.w3(x)))
