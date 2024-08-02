@@ -103,6 +103,7 @@ def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
     freqs = freqs.float() / dim
     freqs = 1.0 / (theta ** (freqs))
     # Our timesteps
+    # Our timestamp will increment by one for every next token embedding
     t = torch.arange(end, device=freqs.device)
     # We then do an outer dot product to get our actual frequencies for
     # every time step. Should be shape(len(t), len(freqs))
@@ -531,7 +532,7 @@ class Transformer(nn.Module):
             # token limit for the Llama 2 generation of models is 4096.
             # Adding this multiplier instead of using 4096 directly allows
             # for dynamism of token lengths while training or fine-tuning.
-            self.params // self.params.n_heads, self.params.max_seq_len * 2
+            self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
 
     @torch.inference_mode()
