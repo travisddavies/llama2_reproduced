@@ -5,6 +5,7 @@ my findings later
 ### Tokenisation
 ### RoPE
 ### RMSNorm
+### SwiGLU
 ### Transformer
 ### GQA
 ### Training
