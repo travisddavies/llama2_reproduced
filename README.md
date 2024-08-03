@@ -88,6 +88,11 @@ used for Llama is RMSNorm. So in essence, data is first normalised before
 going into the attention layer, and then normalised again before being fed
 into the last feed-forward layer.
 
+<p align="center">
+  <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b6fab4d-7825-47ec-a59e-979d9dfa0384_1256x938.png" alt="Equation">
+</p>
+
+
 The code block below shows how this works
 within the transformer block.
 ```python
