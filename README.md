@@ -56,6 +56,7 @@ scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 ### SwiGLU
 SwiGLU is the activation function used on the feed-forward layer of each
 transformer block. The formula for SwiGLU is as follows:
+
 $$
 SwiGLU = Swish(xW) \cdot xV
 Swish = x \cdot Sigmoid(\beta x)
