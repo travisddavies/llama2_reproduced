@@ -55,6 +55,45 @@ scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 ### RMSNorm
 ### SwiGLU
 ### Transformer
+For the transformer architecture, it's just a general stacked architecture of
+transformer blocks, all decoder architecture. However, one thing that is
+different in this architecture is that inputs are normalised before being
+fed into each transformer block. As mentioned above, the normalisation
+used for Llama is RMSNorm. So in essence, data is first normalised before
+going into the attention layer, and then normalised again before being fed
+into the last feed-forward layer.
+
+The code block below shows how this works
+within the transformer block.
+```python
+def forward(
+    self,
+    x: torch.Tensor,
+    start_pos: int,
+    freqs_cis: torch.Tensor,
+    mask: Optional[torch.Tensor],
+):
+    """
+    Perform a forward pass through the TransformerBlock.
+
+    Args:
+        x (torch.Tensor): Input tensor.
+        start_pos (int): Starting position for attention caching.
+        freqs_cis (torch.Tensor): Precomputed cosine and sine frequencies.
+        mask (torch.Tensor, optional): Masking tensor for attention. Defaults to None.
+
+    Returns:
+        torch.Tensor: Output tensor after applying attention and feedforward layers.
+
+    """
+    # We've included an additional norm at the beginning of each attention
+    # layer, something unique to this architecture
+    h = x + self.attention(
+        self.attention_norm(x), start_pos, freqs_cis, mask
+    )
+    out = h + self.feed_forward(self.ffn_norm(h))
+    return out
+```
 ### GQA
 ### Training
 
