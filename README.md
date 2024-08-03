@@ -68,7 +68,7 @@ with the stability of the model when feeding in data. The formula is shown below
 <p align="center">
   <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbaeeee5e-8cba-426f-9fa4-8666a7e76155_1080x138.png"
   alt="RMSNorm"
-  width="300">
+  width="600">
 </p>
 
 Below shows the code block for how RMSNorm is used in the model. It is important
