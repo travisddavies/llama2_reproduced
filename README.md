@@ -59,6 +59,16 @@ transformer block. The formula for SwiGLU is as follows:
 
 ![Equation](assets/swiglu.png)
 
+How does this look in code? Like the following code block:
+```python
+def forward(self, x):
+    # This is the SwiGLU activation function
+    # Two linear transformations with pointwise multiplication
+    # Then linear transformation from w2 multiplied by the activation
+    # function of Swish (F.silu in this case)
+    return self.w2(F.silu(self.w1(x) * self.w3(x)))
+```
+
 ### Transformer
 For the transformer architecture, it's just a general stacked architecture of
 transformer blocks, all decoder architecture. However, one thing that is
