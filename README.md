@@ -1,6 +1,10 @@
 ## Llama 2 Reproduced
-This is a just reproduction code to understand how Llama 2 works. May give further explanations for
-my findings later
+This is a deconstruction and reproduction of the LLama 2 code. The code provided
+is a copy of the original source code, but I just wrote it out by hand again
+to have a stronger understanding of the code. The explanations below are largely
+based off [this article](https://cameronrwolfe.substack.com/p/llama-2-from-the-ground-up),
+however I have tried to add extra detail and code snippets for better understanding
+of the implementations.
 ### Prompting
 ### Tokenisation
 The tokeniser for this model is [SentencePiece](https://github.com/google/sentencepiece),
