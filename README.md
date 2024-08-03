@@ -20,6 +20,7 @@ of the implementations.
 10. [Training](#Training)
 
 ## Prompting
+TODO
 ## Tokenisation
 The tokeniser for this model is [SentencePiece](https://github.com/google/sentencepiece),
 a common tokeniser that is used for transformers. I won't go into too much detail
@@ -311,4 +312,4 @@ What this essentially ends up with is the a group of `k` query heads will perfor
 matrix multiplication on the same key and value heads, since each key and value
 head will be repeated `k` times.
 ## Training
-
+TODO
