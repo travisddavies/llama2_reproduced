@@ -11,6 +11,13 @@ of the implementations.
 1. [Prompting](#Prompting)
 2. [Tokenisation](#Tokenisation)
 3. [Chunking and Caching](#Chunking-and-Caching)
+4. [Input and Output](#Input-and-Output)
+5. [RoPE](#RoPE)
+6. [RMSNorm](#RMSNorm)
+7. [SwiGLU](#SwiGLU)
+8. [Transfomer](#Transformer)
+9. [GQA](#GQA)
+10. [Training](#Training)
 
 ### Prompting
 ### Tokenisation
