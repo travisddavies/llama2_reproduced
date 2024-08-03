@@ -59,6 +59,7 @@ transformer block. The formula for SwiGLU is as follows:
 
 $$
 SwiGLU = Swish(xW) \cdot xV
+
 Swish = x \cdot Sigmoid(\beta x)
 $$
 
