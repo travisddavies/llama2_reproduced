@@ -80,7 +80,10 @@ scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 ## Input and Output
 TODO
 ## RoPE
-TODO
+This is the positional encoding for Llama. The intuition and derivation of it
+is a little too much for me to wrap my head around for now. I'll probably come
+back to this at a later time, but a useful resource for RoPE can be found
+[here](https://blog.eleuther.ai/rotary-embeddings/).
 ## RMSNorm
 The normalisation formula employed for this transformer stack is Root Mean
 Square Normalisation (RMSNorm), this is generally just supposed to help
