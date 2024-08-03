@@ -132,6 +132,13 @@ attention mechanism. The way it works is that we can maintain the same level
 of performance as vanilla multi-head attention, but with more memory efficiency
 reducing the number of heads in the values and keys heads.
 
+
+<p align="center">
+  <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8a7dc1e2-e66c-4a30-a0a7-518ae7e3a566_1536x596.png" alt="GQA">
+</p>
+
+
+
 Where does it save the memory? In the caching of previous chunks, not in the
 actual attention matrix multiplication itself, since the dimensions will need
 to be returned back to their original state before the matrix multiplication.
