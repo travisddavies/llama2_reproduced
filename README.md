@@ -83,7 +83,9 @@ def forward(self, x):
 
 ### Transformer
 For the transformer architecture, it's just a general stacked architecture of
-transformer blocks, all decoder architecture. However, one thing that is
+transformer blocks, all decoder architecture. If you want a detailed explanation
+of how a typical transformer architecture works, you can look at my other
+repo explaining it [here](https://github.com/travisddavies/the_annotated_transformer). However, one thing that is
 different in this architecture is that inputs are normalised before being
 fed into each transformer block. As mentioned above, the normalisation
 used for Llama is RMSNorm. So in essence, data is first normalised before
