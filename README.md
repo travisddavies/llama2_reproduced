@@ -61,6 +61,69 @@ scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 ### Input and Output
 ### RoPE
 ### RMSNorm
+The normalisation formula employed for this transformer stack is Root Mean
+Square Normalisation (RMSNorm), this is generally just supposed to help
+with the stability of the model when feeding in data. The formula is shown below:
+
+<p align="center">
+  <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbaeeee5e-8cba-426f-9fa4-8666a7e76155_1080x138.png"
+  alt="RMSNorm"
+  width="300">
+</p>
+
+Below shows the code block for how RMSNorm is used in the model. It is important
+to note that an epsilon and weights are also included in the calculation,
+largely to help with numerical stability and to learn a scaling parameter (as
+mentioned in the comments of the code).
+
+```python
+class RMSNorm(torch.nn.Module):
+    def __init__(self, dim: int, eps: float = 1e-6):
+        """
+        Initialize the RMSNorm normalization layer.
+
+        Args:
+            dim (int): The dimension of the input tensor.
+            eps (float, optional): A small value added to the denominator for numerical stability. Default is 1e-6.
+
+        Attributes:
+            eps (float): A small value added to the denominator for numerical stability.
+            weight (nn.Parameter): Learnable scaling parameter.
+        """
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def _norm(self, x):
+        """
+        Apply the RMSNorm normalization to the input tensor.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The normalized tensor.
+
+        """
+        # return the norm along the -1 axis
+        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+
+    def forward(self, x):
+        """
+        Forward pass through the RMSNorm layer.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor after applying RMSNorm.
+
+        """
+        output = self._norm(x.float()).type_as(x)
+        # multiply the calculated norm with the learnable weights
+        return output * self.weight
+```
+
 ### SwiGLU
 SwiGLU is the activation function used on the feed-forward layer of each
 transformer block. The formula for SwiGLU is as follows:
