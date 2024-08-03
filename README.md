@@ -3,6 +3,13 @@ This is a just reproduction code to understand how Llama 2 works. May give furth
 my findings later
 ### Prompting
 ### Tokenisation
+The tokeniser for this model is ![SentencePiece](https://github.com/google/sentencepiece),
+a common tokeniser that is used for transformers. I won't go into too much detail
+of how this tokeniser works (largely because I haven't put in _too much_ time
+into understanding it yet), but a good explanation for how the model works can
+be found ![here](https://colabdoge.medium.com/understanding-sentencepiece-under-standing-sentence-piece-ac8da59f6b08).
+Deconstructing this tokeniser will likely be another project!
+
 ### Chunking and Caching
 The LLM works with a combination of chunking and caching. Basically what that
 means is that we will, for each prompt, only feed in a chunk of the tokens
