@@ -10,6 +10,7 @@ of the implementations.
 ## Table of Contents
 1. [Prompting](#Prompting)
 2. [Tokenisation](#Tokenisation)
+3. [Chunking and Caching](#Chunking-and-Caching)
 
 ### Prompting
 ### Tokenisation
