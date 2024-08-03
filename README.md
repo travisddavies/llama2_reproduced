@@ -66,7 +66,7 @@ SwiGLU is the activation function used on the feed-forward layer of each
 transformer block. The formula for SwiGLU is as follows:
 
 <p align="center">
-  <img src="assets/swiglu.png" alt="Equation">
+  <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9aec7e3e-45bc-42f1-9e0c-0248bee25263_982x244.png" alt="Equation">
 </p>
 
 How does this look in code? Like the following code block:
