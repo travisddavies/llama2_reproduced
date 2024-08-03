@@ -58,8 +58,7 @@ SwiGLU is the activation function used on the feed-forward layer of each
 transformer block. The formula for SwiGLU is as follows:
 
 $$
-SwiGLU = Swish(xW) \cdot xV
-
+SwiGLU = Swish(xW) \cdot xV \\
 Swish = x \cdot Sigmoid(\beta x)
 $$
 
