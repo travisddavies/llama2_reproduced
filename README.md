@@ -9,6 +9,7 @@ of how this tokeniser works (largely because I haven't put in _too much_ time
 into understanding it yet), but a good explanation for how the model works can
 be found [here](https://colabdoge.medium.com/understanding-sentencepiece-under-standing-sentence-piece-ac8da59f6b08).
 Deconstructing this tokeniser will likely be another project!
+Meta has provided a pretrained model for the tokeniser for Llama.
 
 ### Chunking and Caching
 The LLM works with a combination of chunking and caching. Basically what that
