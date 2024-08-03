@@ -57,7 +57,9 @@ scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 SwiGLU is the activation function used on the feed-forward layer of each
 transformer block. The formula for SwiGLU is as follows:
 
-![Equation](assets/swiglu.png)
+<p align="center">
+  <img src="path/to/your/image.png" alt="Equation">
+</p>
 
 How does this look in code? Like the following code block:
 ```python
