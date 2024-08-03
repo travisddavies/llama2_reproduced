@@ -95,5 +95,98 @@ def forward(
     return out
 ```
 ### GQA
+Grouped-Query Attention (GQA) is a more efficient way of applying the self-
+attention mechanism. The way it works is that we can maintain the same level
+of performance as vanilla multi-head attention, but with more memory efficiency
+reducing the number of heads in the values and keys heads.
+
+Where does it save the memory? In the caching of previous chunks, not in the
+actual attention matrix multiplication itself, since the dimensions will need
+to be returned back to their original state before the matrix multiplication.
+This concept took me a while to understand, so just remember - it is making
+the amount of memory required for caching much more efficient!
+
+So how do we achieve this? We first reduce the dimensionality of the key and
+value heads with the initial linear transformation section, as shown in the
+code block below:
+```python
+# Linear transformations
+xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
+
+# We now break the inputs into sub-embeddings for multi-headed
+# attention.
+xq = xq.view(bsz, seqlen, self.n_local_heads, self.head_dim)
+xk = xk.view(bsz, seqlen, self.n_local_kv_heads, self.head_dim)
+xv = xv.view(bsz, seqlen, self.n_local_kv_heads, self.head_dim)
+```
+
+The output dimensins of the linear transformations are different for the
+query embeddings to the key and value embeddings, which is shown below:
+```python
+self.wq = ColumnParallelLinear(
+    args.dim,
+    args.n_heads * self.head_dim,
+    bias=False,
+    gather_output=False,
+    init_head=lambda x: x,
+)
+# These are the weights for the key embeddings
+self.wk = ColumnParallelLinear(
+    args.dim,
+    self.n_kv_heads * self.head_dim,
+    bias=False,
+    gather_output=False,
+    init_method=lambda x: x,
+)
+# These are the weights for the value embeddings
+self.wv = ColumnParallelLinear(
+    args.dim,
+    self.n_kv_heads * self.head_dim,
+    bias=False,
+    gather_output=False,
+    init_method=lambda x: x,
+)
+# Maybe for the final linear layer once the heads are concatenated
+# together again? [MAKE SURE TO CHECK ON THIS]
+self.wo = RowParallelLinear(
+    args.n_head * self.head_dim,
+    args.dim,
+    bias=False,
+    input_is_parallel=True,
+    init_method=lambda x: x,
+)
+```
+The query embeddings will have an output dim of `self.n_heads * self.head_dim`
+whereas the value and key embeddings will have an output dim of
+`self.n_kv_heads * self.head_dim`, where `self.n_kv_heads` will be a reduced
+number.
+
+Since the number of heads will be different to the query heads, before we
+perform the matrix multiplication for the attention scores, we need to repeat
+each head `k` times to match the dimensionality of the key heads. This is
+performed with the following code:
+```python
+def repeat_kv(x: torch.Tensor, n_rep: int) -> torch.Tensor:
+    """torch.repeat_interleave(x, dim=2, repeats=n_rep)
+    """
+    bs, slen, n_kv_heads, head_dim = x.shape
+    if n_rep == 1:
+        return x
+    return (
+        # This converts x to the following dimensions:
+        # (bs, slen, n_kv_heads, 1, head_dim)
+        x[:, :, :, None, :]
+        # New dimensions:
+        # (bs, slen, n_kv_heads, n_rep, head_dim)
+        .expand(bs, slen, n_kv_heads, n_rep, head_dim)
+        # New dimensions:
+        # (bs, slen, n_kv_heads * n_rep, head_dim)
+        # We therefore concatenated together the 3rd and 4th column
+        .reshape(bs, slen, n_kv_heads * n_rep, head_dim)
+    )
+```
+What this essentially ends up with is the a group of `k` query heads will perform
+matrix multiplication on the same key and value heads, since each key and value
+head will be repeated `k` times.
 ### Training
 
