@@ -19,8 +19,8 @@ of the implementations.
 9. [GQA](#GQA)
 10. [Training](#Training)
 
-### Prompting
-### Tokenisation
+## Prompting
+## Tokenisation
 The tokeniser for this model is [SentencePiece](https://github.com/google/sentencepiece),
 a common tokeniser that is used for transformers. I won't go into too much detail
 of how this tokeniser works (largely because I haven't put in _too much_ time
@@ -29,7 +29,7 @@ be found [here](https://colabdoge.medium.com/understanding-sentencepiece-under-s
 Deconstructing this tokeniser will likely be another project!
 Meta has provided a pretrained model for the tokeniser for Llama.
 
-### Chunking and Caching
+## Chunking and Caching
 The LLM works with a combination of chunking and caching. Basically what that
 means is that we will, for each prompt, only feed in a chunk of the tokens
 from the prompt. This is to enable the model to remember the chunks that came
@@ -76,9 +76,9 @@ values = values.transpose(1, 2)
 # Attention matrix multiplication scores
 scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 ```
-### Input and Output
-### RoPE
-### RMSNorm
+## Input and Output
+## RoPE
+## RMSNorm
 The normalisation formula employed for this transformer stack is Root Mean
 Square Normalisation (RMSNorm), this is generally just supposed to help
 with the stability of the model when feeding in data. The formula is shown below:
@@ -142,7 +142,7 @@ class RMSNorm(torch.nn.Module):
         return output * self.weight
 ```
 
-### SwiGLU
+## SwiGLU
 SwiGLU is the activation function used on the feed-forward layer of each
 transformer block. The formula for SwiGLU is as follows:
 
@@ -162,7 +162,7 @@ def forward(self, x):
     return self.w2(F.silu(self.w1(x) * self.w3(x)))
 ```
 
-### Transformer
+## Transformer
 For the transformer architecture, it's just a general stacked architecture of
 transformer blocks, all decoder architecture. If you want a detailed explanation
 of how a typical transformer architecture works, you can look at my other
@@ -209,7 +209,7 @@ def forward(
     out = h + self.feed_forward(self.ffn_norm(h))
     return out
 ```
-### GQA
+## GQA
 Grouped-Query Attention (GQA) is a more efficient way of applying the self-
 attention mechanism. The way it works is that we can maintain the same level
 of performance as vanilla multi-head attention, but with more memory efficiency
@@ -310,5 +310,5 @@ def repeat_kv(x: torch.Tensor, n_rep: int) -> torch.Tensor:
 What this essentially ends up with is the a group of `k` query heads will perform
 matrix multiplication on the same key and value heads, since each key and value
 head will be repeated `k` times.
-### Training
+## Training
 
