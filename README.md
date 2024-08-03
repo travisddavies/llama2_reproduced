@@ -78,7 +78,9 @@ values = values.transpose(1, 2)
 scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
 ```
 ## Input and Output
+TODO
 ## RoPE
+TODO
 ## RMSNorm
 The normalisation formula employed for this transformer stack is Root Mean
 Square Normalisation (RMSNorm), this is generally just supposed to help
